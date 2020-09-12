@@ -1,0 +1,3 @@
+instance-id: id-{{ lower . }}
+local-hostname: lab-{{ lower . }}
+hostname: lab-{{ lower . }}
