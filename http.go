@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
+	securejoin "github.com/cyphar/filepath-securejoin"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -57,19 +60,15 @@ func cloudInitHandler(w http.ResponseWriter, r *http.Request) {
 
 func execHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
 	log.Printf("exec request: %v", r.URL.Path)
 
-	w.Header().Set("Content-Type", "text/plain")
-
-	args := strings.Split(strings.TrimPrefix(r.URL.Path, "/exec/"), "/")
-	cmd := exec.Command(execCmd, args...)
-
-	log.Printf("exec command: %v %v", execCmd, args)
-	stdout, err := cmd.Output()
+	command := strings.TrimPrefix(r.URL.Path, "/exec/")
+	command = strings.TrimRight(command, "/")
+	command, err := securejoin.SecureJoin(execDir, command)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -77,9 +76,40 @@ func execHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = w.Write(stdout)
+	_, err = os.Stat(command)
+
+	if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		log.Printf("exec command: not found %v\n", command)
+		return
+	}
+
+	// Parse query parameters into slice of "key=value" strings to use as environment variables
+	env := make([]string, len(r.URL.Query()))
+
+	i := 0
+
+	for k, l := range r.URL.Query() {
+		env[i] = fmt.Sprintf("%v=%v", k, l[len(l) - 1])
+		i += 1
+	}
+
+	cmd := exec.Command(command)
+	cmd.Env = append(os.Environ(), env...)
+
+	log.Printf("exec command: %v %v", command, env)
+	stdout, err := cmd.Output()
 
 	if err != nil {
-		log.Printf(" %v\n", err)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		log.Printf("exec command: failed with %v\n", err)
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	_, err = w.Write(stdout)
+	log.Printf("exec command stdout:\n%v\n", string(stdout))
+
+	if err != nil {
+		log.Printf("%v\n", err)
 	}
 }

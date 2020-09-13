@@ -13,7 +13,7 @@ import (
 var (
 	allTemplates      = []string{"pxelinux.cfg", "seed_data.yml", "meta_data.yml", "user_data.yml"}
 	dataDirectory     string
-	execCmd           string
+	execDir           string
 	httpAddress       string
 	tftpTemplate      string
 	tftpAddress       string
@@ -23,8 +23,8 @@ var (
 
 func main() {
 	flag.StringVar(&dataDirectory, "dataDir", "/var/lab-init", "data directory")
-	flag.StringVar(&execCmd, "execCmd", "/etc/lab-init/exec.sh", "exec command")
-	flag.StringVar(&templateDirectory, "templateDir", "/etc/lab-init", "template directory")
+	flag.StringVar(&execDir, "execDir", "/etc/lab-init/exec", "exec script directory")
+	flag.StringVar(&templateDirectory, "templateDir", "/etc/lab-init/templates", "template directory")
 	flag.StringVar(&httpAddress, "httpAddress", ":8080", "tftp listen address")
 	flag.StringVar(&tftpTemplate, "tftpTemplate", "pxelinux.cfg.tmpl", "config file template")
 	flag.StringVar(&tftpAddress, "tftpAddress", ":69", "tftp listen address")
