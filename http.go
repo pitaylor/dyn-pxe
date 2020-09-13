@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -51,5 +52,34 @@ func cloudInitHandler(w http.ResponseWriter, r *http.Request) {
 	if err := handlers.Execute(strings.TrimPrefix(r.URL.Path, "/cloud-init/")); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("%v\n", err)
+	}
+}
+
+func execHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	log.Printf("exec request: %v", r.URL.Path)
+
+	w.Header().Set("Content-Type", "text/plain")
+
+	args := strings.Split(strings.TrimPrefix(r.URL.Path, "/exec/"), "/")
+	cmd := exec.Command(execCmd, args...)
+
+	log.Printf("exec command: %v %v", execCmd, args)
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("%v\n", err)
+		return
+	}
+
+	_, err = w.Write(stdout)
+
+	if err != nil {
+		log.Printf(" %v\n", err)
 	}
 }

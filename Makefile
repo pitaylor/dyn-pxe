@@ -1,11 +1,15 @@
-.PHONY: build start
+.PHONY: build clean deploy pre_deploy start
 
-build:
-	GOOS=darwin GOARCH=amd64 go build -o out/lab-init-darwin-amd64 *.go
-	GOOS=linux GOARCH=amd64 go build -o out/lab-init-linux-amd64 *.go
+build: out/lab-init-darwin-amd64 out/lab-init-linux-amd64
+
+out/lab-init-darwin-amd64: *.go
+	GOOS=darwin GOARCH=amd64 go build -o $@ $^
+
+out/lab-init-linux-amd64: *.go
+	GOOS=linux GOARCH=amd64 go build -o $@ $^
 
 start:
-	go run *.go -dataDir . -templateDir ./template
+	go run *.go -dataDir . -templateDir ./templates -execCmd ./scripts/exec.sh
 
 define DEPLOY_SCRIPT
 set -euo pipefail
@@ -18,12 +22,17 @@ endef
 
 export DEPLOY_SCRIPT
 
-deploy:
+pre_deploy:
 ifndef HOST
 	$(error HOST is not set)
 endif
+
+deploy: pre_deploy build
 	ssh $(HOST) -- mkdir -p /tmp/lab-init
 	scp -q out/lab-init-linux-amd64 $(HOST):/tmp/lab-init.tmp
-	scp -q templates/* $(HOST):/tmp/lab-init
+	scp -q templates/* scripts/exec.sh $(HOST):/tmp/lab-init
 	echo "$$DEPLOY_SCRIPT" | ssh $(HOST) -- "sudo bash"
 	echo "Done."
+
+clean:
+	rm -rf out
