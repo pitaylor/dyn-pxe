@@ -2,19 +2,21 @@ package main
 
 import (
 	"fmt"
-	securejoin "github.com/cyphar/filepath-securejoin"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
 var (
-	seedRegexp = regexp.MustCompile("^([^/]+)/$")
-	metaRegexp = regexp.MustCompile("^([^/]+)/meta-data$")
-	userRegexp = regexp.MustCompile("^([^/]+)/user-data$")
+	seedRegexp = regexp.MustCompile("^/cloud-init/([^/]+)/$")
+	metaRegexp = regexp.MustCompile("^/cloud-init/([^/]+)/meta-data$")
+	userRegexp = regexp.MustCompile("^/cloud-init/([^/]+)/user-data$")
+	pxeRegexp  = regexp.MustCompile("^/pxelinux\\.cfg/(.+)$")
 	userData   = "#cloud-config\n"
 )
 
@@ -44,6 +46,13 @@ func cloudInitHandler(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		{
+			pxeRegexp,
+			func(token string) error {
+				w.Header().Set("Content-Type", "text/plain")
+				return templates.ExecuteTemplate(w, "pxelinux.cfg", token)
+			},
+		},
+		{
 			AnyPath,
 			func(token string) error {
 				w.WriteHeader(http.StatusNotFound)
@@ -52,7 +61,7 @@ func cloudInitHandler(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	if err := handlers.Execute(strings.TrimPrefix(r.URL.Path, "/cloud-init/")); err != nil {
+	if err := handlers.Execute(r.URL.Path); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("%v\n", err)
 	}
@@ -90,8 +99,8 @@ func execHandler(w http.ResponseWriter, r *http.Request) {
 	i := 0
 
 	for k, l := range r.URL.Query() {
-		env[i] = fmt.Sprintf("%v=%v", k, l[len(l) - 1])
-		i += 1
+		env[i] = fmt.Sprintf("%v=%v", k, l[len(l)-1])
+		i++
 	}
 
 	cmd := exec.Command(command)

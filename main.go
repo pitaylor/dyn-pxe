@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"github.com/pin/tftp"
 	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/pin/tftp"
 )
 
 var (
@@ -51,6 +52,7 @@ func main() {
 	go func() {
 		http.HandleFunc("/cloud-init/", cloudInitHandler)
 		http.HandleFunc("/exec/", execHandler)
+		http.HandleFunc("/pxelinux.cfg/", cloudInitHandler)
 		http.Handle("/", http.FileServer(http.Dir(dataDirectory)))
 		log.Fatal(http.ListenAndServe(httpAddress, nil))
 	}()
