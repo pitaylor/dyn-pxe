@@ -1,0 +1,1 @@
+Template{{ range $k, $v := .Params }} {{ $k }}={{ $v }}{{ end }}

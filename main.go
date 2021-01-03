@@ -4,65 +4,48 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"path/filepath"
-	"strings"
-	"text/template"
 
+	"github.com/imdario/mergo"
 	"github.com/pin/tftp"
 )
 
-var (
-	allTemplates      = []string{"pxelinux.cfg", "seed_data.yml", "meta_data.yml", "user_data.yml"}
-	dataDirectory     string
-	execDir           string
-	httpAddress       string
-	tftpTemplate      string
-	tftpAddress       string
-	templates         *template.Template
-	templateDirectory string
-)
-
 func main() {
-	flag.StringVar(&dataDirectory, "dataDir", "/var/lab-init", "data directory")
-	flag.StringVar(&execDir, "execDir", "/etc/lab-init/exec", "exec script directory")
-	flag.StringVar(&templateDirectory, "templateDir", "/etc/lab-init/templates", "template directory")
-	flag.StringVar(&httpAddress, "httpAddress", ":8080", "tftp listen address")
-	flag.StringVar(&tftpTemplate, "tftpTemplate", "pxelinux.cfg.tmpl", "config file template")
-	flag.StringVar(&tftpAddress, "tftpAddress", ":69", "tftp listen address")
+	var configFile string
+
+	flags := &Server{}  // config from cli flags
+	config := &Server{} // config from config file
+
+	// default config
+	defaults := &Server{StaticDir: "static", HTTPAddress: ":8080", TFTPAddress: ":69"}
+
+	flag.StringVar(&configFile, "config", "config.yml", "configuration file")
+	flag.StringVar(&flags.StaticDir, "static-dir", "", "static file directory")
+	flag.StringVar(&flags.HTTPAddress, "http-address", "", "http listen address")
+	flag.StringVar(&flags.TFTPAddress, "tftp-address", "", "tftp listen address")
 	flag.Parse()
 
-	templateFiles := make([]string, len(allTemplates))
+	config.load(configFile)
 
-	for i, filename := range allTemplates {
-		templateFiles[i] = filepath.Join(templateDirectory, filename)
-	}
+	srv := &Server{}
 
-	templates = template.Must(
-		template.New("init").
-			Funcs(template.FuncMap{"lower": strings.ToLower}).
-			ParseFiles(templateFiles...),
-	)
-
-	for _, name := range allTemplates {
-		if templates.Lookup(name) == nil {
-			log.Panicf("missing template %v", name)
+	// merge config values; cli flags have highest precedence
+	for _, s := range []*Server{flags, config, defaults} {
+		if err := mergo.Merge(srv, s); err != nil {
+			panic(err)
 		}
 	}
 
 	go func() {
-		http.HandleFunc("/cloud-init/", cloudInitHandler)
-		http.HandleFunc("/exec/", execHandler)
-		http.HandleFunc("/pxelinux.cfg/", cloudInitHandler)
-		http.Handle("/", http.FileServer(http.Dir(dataDirectory)))
-		log.Fatal(http.ListenAndServe(httpAddress, nil))
+		http.Handle("/", srv.newHTTPHandler())
+		log.Fatal(http.ListenAndServe(srv.HTTPAddress, nil))
 	}()
 
 	go func() {
-		log.Fatal(tftp.NewServer(tftpHandler, nil).ListenAndServe(tftpAddress))
+		log.Fatal(tftp.NewServer(srv.newTFTPReadHandler(), nil).ListenAndServe(srv.TFTPAddress))
 	}()
 
-	log.Printf("http listening on %v", httpAddress)
-	log.Printf("tftp listening on %v", tftpAddress)
+	log.Printf("http listening on %v", srv.HTTPAddress)
+	log.Printf("tftp listening on %v", srv.TFTPAddress)
 
 	select {}
 }

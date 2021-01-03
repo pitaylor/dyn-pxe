@@ -1,3 +1,5 @@
 .idea
-exec/
+config.yml
 out/
+static/
+TODO.md
