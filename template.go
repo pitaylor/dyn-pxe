@@ -23,10 +23,7 @@ func newTemplate(fileName string) *Template {
 			ParseFiles(fileName),
 	)
 
-	return &Template{
-		template:     template,
-		templateName: name,
-	}
+	return &Template{template: template, templateName: name}
 }
 
 // MimeType derives the mime type of the resource from the template file

@@ -1,4 +1,4 @@
-module entangle.net/en-pxe
+module github.com/pitaylor/dyn-pxe
 
 go 1.15
 
