@@ -1,4 +1,4 @@
-.PHONY: build clean start
+.PHONY: build clean start test
 
 build: out/dyn-pxe-darwin-amd64 out/dyn-pxe-linux-amd64
 
@@ -10,6 +10,9 @@ out/dyn-pxe-linux-amd64: $(wildcard *.go)
 
 start:
 	go run .
+
+test:
+	go test -v ./...
 
 clean:
 	rm -rf out
