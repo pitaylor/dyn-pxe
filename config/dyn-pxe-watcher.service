@@ -1,0 +1,10 @@
+[Unit]
+Description=Dynamic PXE Boot Service Restarter
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl restart dyn-pxe.service
+
+[Install]
+WantedBy=multi-user.target

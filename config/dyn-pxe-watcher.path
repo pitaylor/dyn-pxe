@@ -1,0 +1,6 @@
+[Path]
+Unit=dyn-pxe-watcher.service
+PathChanged=/etc/dyn-pxe
+
+[Install]
+WantedBy=multi-user.target
