@@ -13,13 +13,14 @@ import (
 type Template struct {
 	template     *template.Template
 	templateName string
+	variables    *VariableMap
 }
 
 func newTemplate(fileName string) *Template {
 	name := filepath.Base(fileName)
 	template := template.Must(
 		template.New(name).
-			Funcs(template.FuncMap{"lower": strings.ToLower}).
+			Funcs(template.FuncMap{"lower": strings.ToLower, "shortHash": ShortHash}).
 			ParseFiles(fileName),
 	)
 
@@ -40,7 +41,10 @@ func (r *Template) MimeType() string {
 }
 
 // Render renders the template.
-func (r *Template) Render(out io.Writer, params ParamMap) error {
+func (r *Template) Render(out io.Writer, params ParamMap, vars VariableMap) error {
 	log.Printf("Render template: %v %v", r.templateName, params)
-	return r.template.ExecuteTemplate(out, r.templateName, struct{ Params ParamMap }{Params: params})
+	return r.template.ExecuteTemplate(out, r.templateName, struct{
+		Params ParamMap
+		Vars VariableMap
+	}{Params: params, Vars: vars})
 }

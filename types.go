@@ -11,6 +11,7 @@ type Server struct {
 	HTTPAddress string
 	TFTPAddress string
 	Routes      RouteSet
+	Variables	VariableMap
 }
 
 // Route maps a path to a resource
@@ -35,5 +36,8 @@ type ParamMap map[string]string
 // Resource is...
 type Resource interface {
 	MimeType() string
-	Render(io.Writer, ParamMap) error
+	Render(io.Writer, ParamMap, VariableMap) error
 }
+
+// VariableMap is a map of user defined variables to use in templates
+type VariableMap map[string]interface{}

@@ -19,7 +19,7 @@ func (s *Server) newTFTPReadHandler() func(string, io.ReaderFrom) error {
 		if resource, params := s.matchResource(filename); resource != nil {
 			var rendered bytes.Buffer
 
-			if err = resource.Render(&rendered, params); err == nil {
+			if err = resource.Render(&rendered, params, s.Variables); err == nil {
 				_, err = rf.ReadFrom(strings.NewReader(rendered.String()))
 			}
 		} else {

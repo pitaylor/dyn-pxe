@@ -14,7 +14,7 @@ func normalizeYaml(y string) []byte {
 
 func renderResource(resource Resource, params ParamMap) (string, error) {
 	var rendered bytes.Buffer
-	err := resource.Render(&rendered, params)
+	err := resource.Render(&rendered, params, VariableMap{})
 	return rendered.String(), err
 }
 

@@ -9,7 +9,7 @@ out/dyn-pxe-linux-amd64: $(wildcard *.go)
 	GOOS=linux GOARCH=amd64 go build -o $@ $^
 
 start:
-	go run .
+	go run . -config config.yml -static-dir static
 
 test:
 	go test -v ./...

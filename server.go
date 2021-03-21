@@ -10,7 +10,9 @@ import (
 )
 
 func (s *Server) load(configFile string) {
-	if _, err := os.Stat(configFile); err == nil {
+	_, err := os.Stat(configFile)
+
+	if err == nil {
 		log.Printf("Loading %v", configFile)
 
 		data, err := ioutil.ReadFile(configFile)
@@ -18,10 +20,10 @@ func (s *Server) load(configFile string) {
 		if err == nil {
 			err = yaml.Unmarshal(data, &s)
 		}
+	}
 
-		if err != nil {
-			panic(err)
-		}
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -33,13 +35,14 @@ func (s *Server) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		HTTPAddress string `yaml:"http-address"`
 		TFTPAddress string `yaml:"tftp-address"`
 		Resources   []struct{ Route, Command, Template string }
+		Variables	VariableMap
 	}{}
 
 	if err := unmarshal(&y); err != nil {
 		return err
 	}
 
-	*s = Server{StaticDir: y.StaticDir, HTTPAddress: y.HTTPAddress, TFTPAddress: y.TFTPAddress}
+	*s = Server{StaticDir: y.StaticDir, HTTPAddress: y.HTTPAddress, TFTPAddress: y.TFTPAddress, Variables: y.Variables}
 
 	for i, r := range y.Resources {
 		if r.Route == "" {

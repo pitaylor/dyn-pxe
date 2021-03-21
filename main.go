@@ -16,15 +16,17 @@ func main() {
 	config := &Server{} // config from config file
 
 	// default config
-	defaults := &Server{StaticDir: "static", HTTPAddress: ":8080", TFTPAddress: ":69"}
+	defaults := &Server{StaticDir: "/var/lib/dyn-pxe", HTTPAddress: ":8080", TFTPAddress: ":69"}
 
-	flag.StringVar(&configFile, "config", "config.yml", "configuration file")
+	flag.StringVar(&configFile, "config", "", "configuration file")
 	flag.StringVar(&flags.StaticDir, "static-dir", "", "static file directory")
 	flag.StringVar(&flags.HTTPAddress, "http-address", "", "http listen address")
 	flag.StringVar(&flags.TFTPAddress, "tftp-address", "", "tftp listen address")
 	flag.Parse()
 
-	config.load(configFile)
+	if configFile != "" {
+		config.load(configFile)
+	}
 
 	srv := &Server{}
 

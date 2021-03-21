@@ -26,7 +26,7 @@ func (c *Command) MimeType() string {
 
 // Render executes the command and outputs the command's stdout. Params are
 // passed to the command as environment variables.
-func (c *Command) Render(out io.Writer, params ParamMap) error {
+func (c *Command) Render(out io.Writer, params ParamMap, vars VariableMap) error {
 	env := make([]string, len(params))
 	i := 0
 
@@ -35,6 +35,12 @@ func (c *Command) Render(out io.Writer, params ParamMap) error {
 			env[i] = fmt.Sprintf("%v=%v", k, v)
 		}
 		i++
+	}
+
+	for k, v := range vars {
+		if k != "" {
+			env[i] = fmt.Sprintf("%v=%v", k, v)
+		}
 	}
 
 	split := strings.Split(c.command, " ")

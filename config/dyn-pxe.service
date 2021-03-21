@@ -1,0 +1,13 @@
+[Unit]
+Description=Dynamic PXE Boot Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=root
+WorkingDirectory=/etc/dyn-pxe
+ExecStart=/usr/local/bin/dyn-pxe -config /etc/dyn-pxe/config.yml
+
+[Install]
+WantedBy=multi-user.target

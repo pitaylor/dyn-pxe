@@ -20,7 +20,7 @@ func (s *Server) newHTTPHandler() http.Handler {
 
 			params["HTTP_METHOD"] = r.Method
 
-			if err := resource.Render(w, params); err != nil {
+			if err := resource.Render(w, params, s.Variables); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				log.Printf("resource failed with %v\n", err)
 			}
