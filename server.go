@@ -35,7 +35,7 @@ func (s *Server) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		HTTPAddress string `yaml:"http-address"`
 		TFTPAddress string `yaml:"tftp-address"`
 		Resources   []struct{ Route, Command, Template string }
-		Variables	VariableMap
+		Variables   VariableMap
 	}{}
 
 	if err := unmarshal(&y); err != nil {

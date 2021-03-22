@@ -43,8 +43,8 @@ func (r *Template) MimeType() string {
 // Render renders the template.
 func (r *Template) Render(out io.Writer, params ParamMap, vars VariableMap) error {
 	log.Printf("Render template: %v %v", r.templateName, params)
-	return r.template.ExecuteTemplate(out, r.templateName, struct{
+	return r.template.ExecuteTemplate(out, r.templateName, struct {
 		Params ParamMap
-		Vars VariableMap
+		Vars   VariableMap
 	}{Params: params, Vars: vars})
 }

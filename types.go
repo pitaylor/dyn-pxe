@@ -11,7 +11,7 @@ type Server struct {
 	HTTPAddress string
 	TFTPAddress string
 	Routes      RouteSet
-	Variables	VariableMap
+	Variables   VariableMap
 }
 
 // Route maps a path to a resource
