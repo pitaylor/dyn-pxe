@@ -1,8 +1,10 @@
-name: Go
+name: Main
 
 on:
   push:
     branches: [ master ]
+    tags: ['v*.*.*']
+
   pull_request:
     branches: [ master ]
 
@@ -10,6 +12,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v2
 
@@ -23,3 +26,11 @@ jobs:
 
     - name: Test
       run: make test
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: out/dyn-pxe-*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
