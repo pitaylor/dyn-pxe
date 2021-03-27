@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -42,13 +44,19 @@ func TestNewHTTPHandler(t *testing.T) {
 
 	t.Run("command", func(t *testing.T) {
 		rr := httptest.NewRecorder()
-		req, err := http.NewRequest("POST", "/command/x/y", nil)
+
+		data := url.Values{}
+		data.Set("v1", "post")
+
+		req, err := http.NewRequest("POST", "/command/x/y?v2=query", strings.NewReader(data.Encode()))
 		assert.NoError(t, err)
+
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 		handler.ServeHTTP(rr, req)
 		assert.Equal(t, http.StatusOK, rr.Code)
 		assert.Equal(t, "text/plain; charset=utf-8", rr.Header().Get("Content-Type"))
-		assert.Equal(t, "Command: test/command.sh p1=x p2=y HTTP_METHOD=POST", rr.Body.String())
+		assert.Equal(t, "Command: test/command.sh p1=x p2=y v1=post v2=query HTTP_METHOD=POST", rr.Body.String())
 	})
 
 	t.Run("static-file", func(t *testing.T) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"net/http"
 )
@@ -18,11 +19,26 @@ func (s *Server) newHTTPHandler() http.Handler {
 				w.Header().Set("Content-Type", mimeType)
 			}
 
+			if err := r.ParseForm(); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			for k, v := range r.Form {
+				params[k] = v[len(v)-1]
+			}
+
 			params["HTTP_METHOD"] = r.Method
 
-			if err := resource.Render(w, params, s.Variables); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				log.Printf("resource failed with %v\n", err)
+			bw := bufio.NewWriterSize(w, 65535)
+
+			if err := resource.Render(bw, params, s.Variables); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if err := bw.Flush(); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			staticHandler.ServeHTTP(w, r)
