@@ -17,23 +17,27 @@ func TestCommand(t *testing.T) {
 		var err error
 		var rendered string
 
-		rendered, err = renderResource(cmd, ParamMap{})
+		rendered, err = renderResource(cmd, ParamMap{}, VariableMap{})
 		assert.NoError(t, err)
 		assert.Equal(t, "Command: test/command.sh", rendered)
 
-		rendered, err = renderResource(cmd, ParamMap{"p1": "v1", "p2": "v2"})
+		rendered, err = renderResource(cmd, ParamMap{"p1": "v1", "p2": "v2"}, VariableMap{})
 		assert.NoError(t, err)
 		assert.Equal(t, "Command: test/command.sh p1=v1 p2=v2", rendered)
 
-		rendered, err = renderResource(cmd, ParamMap{"": "/command.sh"})
+		rendered, err = renderResource(cmd, ParamMap{"p1": "x"}, VariableMap{"v1": "y"})
+		assert.NoError(t, err)
+		assert.Equal(t, "Command: test/command.sh p1=x v1=y", rendered)
+
+		rendered, err = renderResource(cmd, ParamMap{"": "/command.sh"}, VariableMap{})
 		assert.NoError(t, err)
 		assert.Equal(t, "Command: test/command.sh", rendered)
 
-		rendered, err = renderResource(newCommand("test/command.sh 1 2 3"), ParamMap{})
+		rendered, err = renderResource(newCommand("test/command.sh 1 2 3"), ParamMap{}, VariableMap{})
 		assert.NoError(t, err)
-		assert.Equal(t, "Command: test/command.sh \"1\" \"2\" \"3\"", rendered)
+		assert.Equal(t, "Command: test/command.sh \"1\" \"2\" \"3\"", rendered, VariableMap{})
 
-		rendered, err = renderResource(cmd, ParamMap{"EXITCODE": "1"})
+		rendered, err = renderResource(cmd, ParamMap{"EXITCODE": "1"}, VariableMap{})
 		assert.Error(t, err)
 		assert.Equal(t, "Command: test/command.sh", rendered)
 	})
