@@ -27,15 +27,15 @@ func TestTemplate(t *testing.T) {
 		var err error
 		var rendered string
 
-		rendered, err = renderResource(tpl, ParamMap{})
+		rendered, err = renderResource(tpl, ParamMap{}, VariableMap{})
 		assert.NoError(t, err)
 		assert.Equal(t, "Template", rendered)
 
-		rendered, err = renderResource(tpl, ParamMap{"p1": "v1"})
+		rendered, err = renderResource(tpl, ParamMap{"p1": "v1"}, VariableMap{})
 		assert.NoError(t, err)
 		assert.Equal(t, "Template p1=v1", rendered)
 
-		rendered, err = renderResource(tpl, ParamMap{"": "/template.txt"})
+		rendered, err = renderResource(tpl, ParamMap{"": "/template.txt"}, VariableMap{})
 		assert.NoError(t, err)
 		assert.Equal(t, "Template =/template.txt", rendered)
 	})
