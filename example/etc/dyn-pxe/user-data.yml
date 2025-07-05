@@ -1,0 +1,36 @@
+#cloud-config
+
+{{ $hostname := or (index .Vars.Hosts .Params.MacAddress) (.Params.MacAddress | shortHash | printf "lab-%s") }}
+
+autoinstall:
+  version: 1
+
+  keyboard:
+    layout: us
+
+  locale: en_US.UTF-8
+
+  identity:
+    hostname: {{ $hostname }}
+    password: "<password-hash>"
+    username: user
+    realname: Example User
+
+  user-data:
+    timezone: America/Chicago
+
+    write_files:
+      - content: |
+          user ALL=(ALL) NOPASSWD:ALL
+        path: /etc/sudoers.d/90-user-user
+        permissions: '0440'
+
+  ssh:
+    install-server: true
+    authorized-keys:
+      - "ssh-ed25519 AAAA... example@example.com"
+      - "ssh-rsa AAAA... example@example.com"
+
+  packages:
+    - avahi-daemon
+    - curl

@@ -1,0 +1,22 @@
+http-address: :8069
+
+resources:
+  - route: pxelinux.cfg/default
+    template: pxelinux.cfg
+
+  # "01-"" prefix indicates ARP hardware type of "ethernet"
+  - route: pxelinux.cfg/01-(?P<MacAddress>[\da-f]{2}(-[\da-f]{2}){5})
+    template: pxelinux.cfg
+
+  - route: cloud-init/(?P<MacAddress>[\da-f]{2}(-[\da-f]{2}){5})/user-data
+    template: user-data.yml
+
+  - route: cloud-init/(?P<MacAddress>[\da-f]{2}(-[\da-f]{2}){5})/meta-data
+    template: meta-data.yml
+
+variables:
+  BaseUrl: http://192.168.1.100:8069
+  Hosts:
+    f4-4d-30-61-9a-6c: lab1
+    f4-4d-30-61-cd-39: lab2
+    f4-4d-30-62-4b-4e: lab3
